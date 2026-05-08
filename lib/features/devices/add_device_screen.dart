@@ -35,11 +35,29 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
   }
 
   Future<void> _getLocation() async {
-    setState(() {
-      _lat = 51.0543;
-      _lng = 3.7174;
-      _city = 'Gent';
-    });
+    final controller = TextEditingController();
+    final city = await showDialog<String>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Jouw stad'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: 'bv. Gent, Antwerpen...'),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuleer')),
+          FilledButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: const Text('OK')),
+        ],
+      ),
+    );
+    if (city != null && city.isNotEmpty) {
+      setState(() {
+        _lat = 51.0543;
+        _lng = 3.7174;
+        _city = city;
+      });
+    }
   }
 
   Future<void> _submit() async {
