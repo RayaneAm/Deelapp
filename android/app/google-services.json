@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "178772363203",
+    "project_id": "buurhuurproject",
+    "storage_bucket": "buurhuurproject.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:178772363203:android:41aa39c0ac6911c16f9f76",
+        "android_client_info": {
+          "package_name": "com.example.deelapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJrayLUux5fhT5L6T9AGWJJYVB-N0vWcg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
