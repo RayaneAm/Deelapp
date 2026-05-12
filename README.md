@@ -1,17 +1,43 @@
-# deelapp
+# DeelApp
 
-A new Flutter project.
+DeelApp is a Flutter app to share and rent household devices.
 
-## Getting Started
+With this app, users can:
 
-This project is a starting point for a Flutter application.
+- Create an account and log in
+- Add devices they want to rent out
+- Upload a photo and set a daily price
+- Choose location manually or share live location
+- Set a rental radius (reach area)
+- Browse available devices and filter by city, product, and distance
 
-A few resources to get you started if this is your first Flutter project:
+The goal of DeelApp is simple: make it easier for people nearby to share useful tools and household equipment.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Quick Start
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. Install Flutter.
+2. Run:
+
+```bash
+flutter pub get
+flutter run
+```
+
+## How It Works
+
+1. Log in with an account.
+2. Tap **Verhuren** to add a new device.
+3. Fill in title, description, category, and price.
+4. Add a location and set your radius.
+5. Publish the device so others can find and rent it.
+
+On the home screen, users can search by city or product and apply a distance filter to only see devices in range.
+
+## Test Login Accounts
+
+You can use these accounts to log in:
+
+- Email: `Test@gmail.com`  
+  Password: `Test123`
+- Email: `Test1@gmail.com`  
+  Password: `Test123`
