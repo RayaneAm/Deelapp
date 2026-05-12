@@ -12,6 +12,7 @@ class Device {
   final bool available;
   final double lat;
   final double lng;
+  final double rentalRadiusKm;
   final String city;
   final DateTime createdAt;
 
@@ -27,6 +28,7 @@ class Device {
     required this.available,
     required this.lat,
     required this.lng,
+    required this.rentalRadiusKm,
     required this.city,
     required this.createdAt,
   });
@@ -45,6 +47,7 @@ class Device {
       available: data['available'] ?? true,
       lat: (data['lat'] as num?)?.toDouble() ?? 0.0,
       lng: (data['lng'] as num?)?.toDouble() ?? 0.0,
+      rentalRadiusKm: (data['rentalRadiusKm'] as num?)?.toDouble() ?? 2.0,
       city: data['city'] ?? '',
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
@@ -62,6 +65,7 @@ class Device {
       'available': available,
       'lat': lat,
       'lng': lng,
+      'rentalRadiusKm': rentalRadiusKm,
       'city': city,
       'createdAt': FieldValue.serverTimestamp(),
     };
