@@ -74,37 +74,47 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
     return json['secure_url'];
   }
 
-  Future<void> _getLocation() async {
-    final controller = TextEditingController();
-    final city = await showDialog<String>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Jouw stad'),
-        content: TextField(
-          controller: controller,
-          decoration:
-              const InputDecoration(hintText: 'bv. Gent, Antwerpen...'),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Annuleer')),
-          FilledButton(
-              onPressed: () => Navigator.pop(context, controller.text.trim()),
-              child: const Text('OK')),
-        ],
+Future<void> _getLocation() async {
+  final controller = TextEditingController();
+  final city = await showDialog<String>(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text('Jouw stad'),
+      content: TextField(
+        controller: controller,
+        decoration: const InputDecoration(hintText: 'bv. Gent, Antwerpen...'),
+        autofocus: true,
       ),
-    );
-    if (city != null && city.isNotEmpty) {
-      setState(() {
-        _lat = 51.0543;
-        _lng = 3.7174;
-        _city = city;
-      });
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuleer')),
+        FilledButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: const Text('OK')),
+      ],
+    ),
+  );
+  if (city != null && city.isNotEmpty) {
+    try {
+      final uri = Uri.parse(
+        'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(city)}&format=json&limit=1'
+      );
+      final response = await http.get(uri, headers: {'User-Agent': 'DeelApp/1.0'});
+      print('STATUS: ${response.statusCode}');
+      print('BODY: ${response.body}');
+      final data = jsonDecode(response.body);
+      if (data.isNotEmpty) {
+        final lat = double.parse(data[0]['lat']);
+        final lng = double.parse(data[0]['lon']);
+        setState(() { _lat = lat; _lng = lng; _city = city; });
+      } else {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Stad niet gevonden, probeer opnieuw')));
+      }
+    } catch (e) {
+      print('FOUT: $e');
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Fout: $e')));
     }
   }
-
+}
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_imageBytes == null) {
