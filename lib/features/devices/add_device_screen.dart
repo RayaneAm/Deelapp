@@ -1,7 +1,10 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../../features/auth/auth_service.dart';
 import '../../shared/models/device_model.dart';
 import '../../shared/services/device_service.dart';
@@ -23,8 +26,14 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
   double? _lng;
   String _city = '';
   bool _loading = false;
+  Uint8List? _imageBytes;
+  String? _imageFileName;
 
   final _deviceService = DeviceService();
+  final _imagePicker = ImagePicker();
+
+  static const _cloudName = 'dyqj0g0dn';
+  static const _uploadPreset = 'wqgs2gzo';
 
   @override
   void dispose() {
@@ -32,6 +41,37 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
     _descriptionController.dispose();
     _priceController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final picked = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
+    if (picked != null) {
+      final bytes = await picked.readAsBytes();
+      setState(() {
+        _imageBytes = bytes;
+        _imageFileName = picked.name;
+      });
+    }
+  }
+
+  Future<String?> _uploadToCloudinary() async {
+    if (_imageBytes == null) return null;
+    final uri = Uri.parse(
+        'https://api.cloudinary.com/v1_1/$_cloudName/image/upload');
+    final request = http.MultipartRequest('POST', uri)
+      ..fields['upload_preset'] = _uploadPreset
+      ..files.add(http.MultipartFile.fromBytes(
+        'file',
+        _imageBytes!,
+        filename: _imageFileName ?? 'image.jpg',
+      ));
+    final response = await request.send();
+    final body = await response.stream.bytesToString();
+    final json = jsonDecode(body);
+    return json['secure_url'];
   }
 
   Future<void> _getLocation() async {
@@ -42,12 +82,17 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
         title: const Text('Jouw stad'),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(hintText: 'bv. Gent, Antwerpen...'),
+          decoration:
+              const InputDecoration(hintText: 'bv. Gent, Antwerpen...'),
           autofocus: true,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuleer')),
-          FilledButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: const Text('OK')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Annuleer')),
+          FilledButton(
+              onPressed: () => Navigator.pop(context, controller.text.trim()),
+              child: const Text('OK')),
         ],
       ),
     );
@@ -62,6 +107,11 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_imageBytes == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Voeg een foto toe')));
+      return;
+    }
     if (_lat == null) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Voeg je locatie toe')));
@@ -72,6 +122,10 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
       final authService = context.read<AuthService>();
       final uid = authService.currentUser!.uid;
       final ownerName = await authService.getCurrentUserName() ?? 'Anoniem';
+
+      // Upload foto naar Cloudinary
+      final imageUrl = await _uploadToCloudinary() ?? '';
+
       final device = Device(
         id: '',
         ownerId: uid,
@@ -79,7 +133,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         category: _selectedCategory,
-        imageUrl: '',
+        imageUrl: imageUrl,
         pricePerDay: double.parse(_priceController.text.trim()),
         available: true,
         lat: _lat!,
@@ -114,6 +168,33 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Foto picker
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  height: 180,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey),
+                  ),
+                  child: _imageBytes != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.memory(_imageBytes!, fit: BoxFit.cover),
+                        )
+                      : const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_a_photo, size: 40, color: Colors.grey),
+                            SizedBox(height: 8),
+                            Text('Tik om foto te kiezen',
+                                style: TextStyle(color: Colors.grey)),
+                          ],
+                        ),
+                ),
+              ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(
